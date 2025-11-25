@@ -1,198 +1,250 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asistente de Inventario de Vinos</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asistente de Inventario de Vinos</title>
 
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Manifest para PWA -->
-    <link rel="manifest" href="manifest.json">
+  <!-- PWA manifest -->
+  <link rel="manifest" href="manifest.json">
 
-    <style>
-        body {
-            transition: background-color 0.5s ease;
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            min-height: 100vh;
-        }
-
-        .action-btn {
-            width: 100%;
-            height: 100px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.1s ease, background-color 0.3s ease;
-        }
-        .action-btn:active {
-            transform: scale(0.98);
-        }
-    </style>
+  <style>
+    body {
+      transition: background-color 0.5s ease;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    #app-container {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+    }
+    .action-btn {
+      width: 100%;
+      height: 100px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      border-radius: 1rem;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: transform 0.1s ease, background-color 0.3s ease;
+    }
+    .action-btn:active { transform: scale(0.98); }
+  </style>
 </head>
 
 <body id="app-body" class="bg-gray-100">
 
-    <div id="app-container" class="max-w-md mx-auto p-6">
+  <div id="app-container" class="max-w-md mx-auto w-full">
 
-        <!-- PANTALLA DE CONFIGURACIÓN -->
-        <div id="setup-screen" class="bg-white rounded-xl shadow-2xl p-6 w-full">
-            <h1 class="text-3xl font-extrabold text-center text-gray-800 mb-6">🍷 Asistente de Inventario</h1>
-            <p class="text-gray-600 text-center mb-8">Comencemos el turno definiendo el producto y el stock inicial.</p>
+    <!-- PANTALLA INICIAL -->
+    <div id="setup-screen" class="p-6 bg-white rounded-xl shadow-2xl w-full">
+      <h1 class="text-3xl font-extrabold text-center text-gray-800 mb-6">
+        🍷 Asistente de Inventario
+      </h1>
+      <p class="text-gray-600 text-center mb-8">
+        Comencemos el turno definiendo el producto y el stock inicial.
+      </p>
 
-            <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del Vino:</label>
-            <input id="wine-name-input" type="text" placeholder="Ej: Cabernet Sauvignon Reserva"
-                class="w-full p-3 border border-gray-300 rounded-lg mb-4">
+      <div class="mb-4">
+        <label for="wine-name-input" class="block text-sm font-medium text-gray-700 mb-2">
+          Nombre del Vino:
+        </label>
+        <input
+          type="text"
+          id="wine-name-input"
+          placeholder="Ej: Cabernet Sauvignon Reserva"
+          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+          required
+        >
+      </div>
 
-            <label class="block text-sm font-medium text-gray-700 mb-2">Stock Inicial (Botellas):</label>
-            <input id="initial-stock-input" type="number" value="12" min="0"
-                class="w-full p-3 border border-gray-300 rounded-lg mb-6">
+      <div class="mb-6">
+        <label for="initial-stock-input" class="block text-sm font-medium text-gray-700 mb-2">
+          Stock Inicial (Botellas):
+        </label>
+        <input
+          type="number"
+          id="initial-stock-input"
+          value="12"
+          min="0"
+          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+          required
+        >
+      </div>
 
-            <button onclick="initializeInventory()"
-                class="w-full p-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">
-                Guardar y Empezar Inventario
-            </button>
-        </div>
-
-        <!-- PANTALLA DE INVENTARIO (OCULTA AL INICIO) -->
-        <div id="inventory-screen" class="hidden text-center">
-
-            <div id="alert-indicator" class="p-6 rounded-xl shadow-2xl transition duration-500">
-                <p id="wine-display" class="text-lg font-medium mb-2 text-white opacity-80">Vino: N/A</p>
-                <p id="stock-display" class="text-5xl font-extrabold mb-4 text-white">Stock actual: 0 botellas</p>
-                <p class="text-sm font-light text-white opacity-75">(Se pondrá rojo si el stock es 3 o menos)</p>
-            </div>
-
-            <div class="mt-8 grid grid-cols-1 gap-4">
-                <button onclick="updateStock(-1)" class="action-btn bg-red-600 text-white hover:bg-red-700">
-                    📉 Venta registrada (Restar 1)
-                </button>
-
-                <button onclick="updateStock(1)" class="action-btn bg-blue-600 text-white hover:bg-blue-700">
-                    ➕ Añadir stock (Sumar 1)
-                </button>
-            </div>
-
-            <button onclick="showSummary()"
-                class="w-full p-3 mt-8 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-900">
-                ✅ Finalizar Inventario y Mostrar Resumen
-            </button>
-        </div>
+      <button
+        onclick="initializeInventory()"
+        class="w-full p-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition duration-150"
+      >
+        Guardar y Empezar Inventario
+      </button>
     </div>
 
-    <!-- MODAL DE RESUMEN -->
-    <div id="summary-modal"
-        class="fixed inset-0 bg-black bg-opacity-70 hidden flex justify-center items-center p-6 z-50">
+    <!-- PANTALLA INVENTARIO -->
+    <div id="inventory-screen" class="hidden w-full text-center">
 
-        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-sm">
-            <h2 class="text-2xl font-bold mb-4 text-indigo-600">📊 Resumen del Turno</h2>
-            <div id="summary-content" class="space-y-2 text-gray-700"></div>
+      <div id="alert-indicator" class="p-6 rounded-xl shadow-2xl transition duration-500">
+        <p class="text-lg font-medium mb-2 text-white opacity-80" id="wine-display">
+          Vino: N/A
+        </p>
 
-            <button onclick="hideSummary()"
-                class="mt-6 w-full p-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">
-                Cerrar
-            </button>
-        </div>
+        <p class="text-5xl font-extrabold mb-4 text-white" id="stock-display">
+          Stock actual: 0 botellas
+        </p>
+
+        <p class="text-sm font-light text-white opacity-75">
+          (El fondo cambia a rojo si el stock es 3 o menos)
+        </p>
+      </div>
+
+      <div class="mt-8 grid grid-cols-1 gap-4">
+        <button
+          onclick="updateStock(-1)"
+          class="action-btn bg-red-600 text-white hover:bg-red-700"
+        >
+          📉 Venta registrada (Restar 1)
+        </button>
+
+        <button
+          onclick="updateStock(1)"
+          class="action-btn bg-blue-600 text-white hover:bg-blue-700"
+        >
+          ➕ Añadir stock (Sumar 1)
+        </button>
+      </div>
+
+      <div class="mt-8">
+        <button
+          onclick="showSummary()"
+          class="w-full p-3 bg-gray-700 text-white rounded-lg font-semibold hover:bg-gray-900 transition duration-150"
+        >
+          ✅ Finalizar Inventario y Mostrar Resumen
+        </button>
+      </div>
     </div>
 
-    <script>
-        // VARIABLES DE ESTADO
-        let wineName = "";
-        let initialStock = 0;
-        let currentStock = 0;
-        const LOW_STOCK_THRESHOLD = 3;
+  </div>
 
-        // REFERENCIAS
-        const setupScreen = document.getElementById("setup-screen");
-        const inventoryScreen = document.getElementById("inventory-screen");
-        const alertIndicator = document.getElementById("alert-indicator");
-        const wineDisplay = document.getElementById("wine-display");
-        const stockDisplay = document.getElementById("stock-display");
-        const appBody = document.getElementById("app-body");
-        const summaryModal = document.getElementById("summary-modal");
-        const summaryContent = document.getElementById("summary-content");
+  <!-- MODAL RESUMEN -->
+  <div id="summary-modal" class="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center hidden">
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-11/12 max-w-sm">
+      <h2 class="text-2xl font-bold mb-4 text-indigo-600">📊 Resumen del Turno</h2>
+      <div id="summary-content" class="space-y-2 text-gray-700"></div>
+      <button
+        onclick="hideSummary()"
+        class="mt-6 w-full p-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700"
+      >
+        Cerrar
+      </button>
+    </div>
+  </div>
 
-        // FUNCIÓN INICIAL
-        function initializeInventory() {
-            const nameInput = document.getElementById("wine-name-input");
-            const stockInput = document.getElementById("initial-stock-input");
+  <script>
+    // Estado
+    let wineName = '';
+    let initialStock = 0;
+    let currentStock = 0;
+    const LOW_STOCK_THRESHOLD = 3;
 
-            if (!nameInput.value.trim() || !stockInput.value) {
-                alert("Por favor ingresa un nombre y un stock inicial.");
-                return;
-            }
+    // DOM
+    const setupScreen = document.getElementById('setup-screen');
+    const inventoryScreen = document.getElementById('inventory-screen');
+    const stockDisplay = document.getElementById('stock-display');
+    const wineDisplay = document.getElementById('wine-display');
+    const alertIndicator = document.getElementById('alert-indicator');
+    const appBody = document.getElementById('app-body');
+    const summaryModal = document.getElementById('summary-modal');
+    const summaryContent = document.getElementById('summary-content');
 
-            wineName = nameInput.value.trim();
-            initialStock = parseInt(stockInput.value);
-            currentStock = initialStock;
+    // 1) Definir vino + stock inicial
+    function initializeInventory() {
+      const nameInput = document.getElementById('wine-name-input');
+      const stockInput = document.getElementById('initial-stock-input');
 
-            setupScreen.classList.add("hidden");
-            inventoryScreen.classList.remove("hidden");
+      if (!nameInput.value.trim() || stockInput.value === '') {
+        alert('Por favor, ingresa el nombre del vino y el stock inicial.');
+        return;
+      }
 
-            renderInventory();
-        }
+      wineName = nameInput.value.trim();
+      initialStock = parseInt(stockInput.value, 10);
+      currentStock = initialStock;
 
-        // ACTUALIZA STOCK
-        function updateStock(delta) {
-            currentStock += delta;
-            if (currentStock < 0) currentStock = 0;
-            renderInventory();
-        }
+      setupScreen.classList.add('hidden');
+      inventoryScreen.classList.remove('hidden');
 
-        // REFRESCA PANTALLA
-        function renderInventory() {
-            wineDisplay.textContent = Vino: ${wineName};
-            stockDisplay.textContent = Stock actual: ${currentStock} botellas;
+      renderInventory();
+    }
 
-            alertIndicator.classList.remove("bg-red-600", "bg-green-600");
-            appBody.classList.remove("bg-red-200", "bg-green-200", "bg-gray-100");
+    // 2 y 4) Restar o sumar stock rápido
+    function updateStock(delta) {
+      currentStock += delta;
+      if (currentStock < 0) currentStock = 0;
+      renderInventory();
+    }
 
-            if (currentStock <= LOW_STOCK_THRESHOLD) {
-                alertIndicator.classList.add("bg-red-600");
-                appBody.classList.add("bg-red-200");
-            } else {
-                alertIndicator.classList.add("bg-green-600");
-                appBody.classList.add("bg-green-200");
-            }
-        }
+    // 3) Indicador de alerta
+    function renderInventory() {
+      wineDisplay.textContent = Vino: ${wineName};
+      stockDisplay.textContent = Stock actual: ${currentStock} botellas;
 
-        // RESUMEN
-        function showSummary() {
-            const diff = currentStock - initialStock;
-            let message = "";
+      alertIndicator.classList.remove('bg-green-600', 'bg-red-600');
+      appBody.classList.remove('bg-green-200', 'bg-red-200', 'bg-gray-100');
 
-            if (diff < 0) message = Se registraron ${Math.abs(diff)} ventas.;
-            else if (diff > 0) message = Se añadieron ${diff} botellas.;
-            else message = "No hubo cambios en el inventario.";
+      if (currentStock <= LOW_STOCK_THRESHOLD) {
+        alertIndicator.classList.add('bg-red-600');
+        appBody.classList.add('bg-red-200');
+      } else {
+        alertIndicator.classList.add('bg-green-600');
+        appBody.classList.add('bg-green-200');
+      }
+    }
 
-            summaryContent.innerHTML = `
-                <p><strong>Vino:</strong> ${wineName}</p>
-                <p><strong>Stock Inicial:</strong> ${initialStock}</p>
-                <p><strong>Stock Final:</strong> ${currentStock}</p>
-                <p class="italic">${message}</p>
-            `;
+    // 5) Cierre con resumen
+    function showSummary() {
+      const diff = currentStock - initialStock;
+      let msg = '';
 
-            summaryModal.classList.remove("hidden");
-        }
+      if (diff < 0) msg = Se registraron ${Math.abs(diff)} ventas netas.;
+      else if (diff > 0) msg = Se registraron ${diff} reabastecimientos netos.;
+      else msg = No se registraron cambios netos.;
 
-        function hideSummary() {
-            summaryModal.classList.add("hidden");
-        }
+      summaryContent.innerHTML = `
+        <p><strong>Vino:</strong> ${wineName}</p>
+        <p><strong>Stock Inicial:</strong> ${initialStock} botellas</p>
+        <p><strong>Stock Final:</strong> ${currentStock} botellas</p>
+        <div class="mt-4 pt-4 border-t border-gray-200">
+          <p class="font-semibold">Resumen:</p>
+          <p class="text-sm italic">${msg}</p>
+        </div>
+      `;
 
-        // EXPONE LAS FUNCIONES (IMPORTANTE PARA GITHUB PAGES)
-        window.initializeInventory = initializeInventory;
-        window.updateStock = updateStock;
-        window.showSummary = showSummary;
-        window.hideSummary = hideSummary;
+      summaryModal.classList.remove('hidden');
+    }
 
-        // SERVICE WORKER
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("service-worker.js");
-        }
-    </script>
+    function hideSummary() {
+      summaryModal.classList.add('hidden');
+    }
 
+    // PWA Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js');
+      });
+    }
+
+    // <-- MUY IMPORTANTE:
+    // No pegues aquí el JSON del manifest ni el service worker.
+    // Eso va en SUS archivos separados.
+  </script>
 </body>
 </html>
