@@ -1,50 +1,36 @@
-const CACHE_NAME = 'inventory-assistant-v1';
+const CACHE_NAME = "inventory-assistant-v2"; // si actualizas algo luego, v3, v4...
 const urlsToCache = [
-    './', // Raíz
-    './index.html',
-    './manifest.json',
-    'https://cdn.tailwindcss.com' // Almacena el CDN de Tailwind para offline
+  "./",
+  "./index.html",
+  "./manifest.json",
+  "./service-worker.js"
 ];
 
-// Evento de Instalación: Almacena los archivos estáticos en caché
-self.addEventListener('install', event => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => {
-                console.log('Opened cache');
-                return cache.addAll(urlsToCache);
-            })
-    );
+// Instalación: precache de archivos locales
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
+  );
+  self.skipWaiting(); // activa el nuevo SW sin esperar
 });
 
-// Evento de Fetch: Sirve los recursos desde la caché si están disponibles
-self.addEventListener('fetch', event => {
-    event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                // Si encontramos el recurso en caché, lo devolvemos
-                if (response) {
-                    return response;
-                }
-                // Si no, lo buscamos en la red (internet)
-                return fetch(event.request);
-            }
-        )
-    );
-});
-
-// Evento de Activación: Limpia cachés viejas para mantener la aplicación actualizada
-self.addEventListener('activate', event => {
-    const cacheWhitelist = [CACHE_NAME];
-    event.waitUntil(
-        caches.keys().then(cacheNames => {
-            return Promise.all(
-                cacheNames.map(cacheName => {
-                    if (cacheWhitelist.indexOf(cacheName) === -1) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
+// Activación: limpia cachés viejos
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) =>
+      Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) return caches.delete(cacheName);
         })
-    );
+      )
+    )
+  );
+  self.clients.claim(); // controla páginas abiertas de una
+});
+
+// Fetch: primero caché, si no, red
+self.addEventListener("fetch", (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => response || fetch(event.request))
+  );
 });
