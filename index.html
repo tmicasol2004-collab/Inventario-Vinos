@@ -247,19 +247,21 @@
         function hideSummary() {
             summaryModal.classList.add('hidden'); // Oculta el modal
         }
-/*
-        // --- Lógica del Service Worker para PWA (Instalación y Offline) ---
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('service-worker.js').then(registration => {
-                    console.log('Service Worker registrado con éxito:', registration);
-                }).catch(err => {
-                    console.error('Fallo en el registro del Service Worker:', err);
-                }); 
-            });
-        }
+
         /*
+// --- Lógica del Service Worker para PWA (Instalación y Offline) ---
+if ('serviceWorker' in navigator) {
+   window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js')
+   });
+}
+*/
+        window.initializeInventory = initializeInventory;
+window.updateStock = updateStock;
+window.showSummary = showSummary;
+window.hideSummary = hideSummary;
     </script>
 </body>
 </html>
+
 
